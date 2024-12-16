@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Logiciel de Gestion du Béton et Maçonnerie</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #ecf0f1;
+        color: #2c3e50;
+    }
+
+    header {
+        background: #2980b9;
+        color: #fff;
+        padding: 15px 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    header h1 {
+        margin: 0;
+        font-size: 1.5em;
+    }
+
+    .landing-page {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: calc(100vh - 60px);
+        text-align: center;
+        padding: 20px;
+    }
+
+    .landing-page h2 {
+        font-size: 2em;
+        margin-bottom: 20px;
+    }
+
+    .landing-page p {
+        max-width: 600px;
+        margin: 0 auto 30px;
+        line-height: 1.5em;
+        font-size: 1.1em;
+    }
+
+    .landing-page button {
+        background: #27ae60;
+        border: none;
+        padding: 15px 30px;
+        font-size: 1em;
+        color: #fff;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: background 0.3s ease;
+        margin: 10px;
+    }
+
+    .landing-page button:hover {
+        background: #2ecc71;
+    }
+
+    .container {
+        max-width: 900px;
+        margin: 40px auto;
+        background: #fff;
+        padding: 30px;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .container h1, .container h2, .container h3 {
+        text-align: center;
+        margin-top: 0;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: inline-block;
+        width: 200px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    select {
+        width: calc(100% - 210px);
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    #element-type, #ferraillage-type {
+        width: calc(100% - 210px);
+    }
+
+    button {
+        background: #2980b9;
+        border: none;
+        padding: 10px 20px;
+        color: #fff;
+        font-size: 1em;
+        cursor: pointer;
+        border-radius: 4px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        transition: background 0.3s ease;
+    }
+
+    button:hover {
+        background: #3498db;
+    }
+
+    #volume-result {
+        margin-top: 20px;
+        font-weight: bold;
+    }
+
+    .elements-list {
+        margin-top: 30px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    table, th, td {
+        border: 1px solid #ddd;
+    }
+
+    th, td {
+        padding: 10px;
+        text-align: left;
+        font-size: 0.9em;
+    }
+
+    th {
+        background: #f5f5f5;
+    }
+
+    .results {
+        margin-top: 20px;
+        text-align: center;
+    }
+
+    .results h3 {
+        margin: 10px 0;
+    }
+
+    .flex {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+    }
+
+    .flex label {
+        width: auto;
+        margin-right: 10px;
+    }
+
+    .flex input {
+        width: 100px;
+        text-align: right;
+    }
+
+    #download-pdf-btn {
+        background: #8e44ad;
+        border: none;
+        padding: 10px 20px;
+        color: #fff;
+        font-size: 1em;
+        cursor: pointer;
+        border-radius: 4px;
+        margin-top: 20px;
+        transition: background 0.3s ease;
+    }
+
+    #download-pdf-btn:hover {
+        background: #9b59b6;
+    }
+
+    @media(max-width: 700px) {
+        label {
+            width: 100%;
+        }
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%;
+        }
+        .flex {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .flex label {
+            margin-bottom: 5px;
+        }
+        .flex input {
+            width: 100%;
+        }
+    }
+
+    .door-window-group {
+        margin: 10px 0;
+        padding: 10px;
+        background: #f9f9f9;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .door-window-group h4 {
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1em;
+    }
+
+    /* Hide ferraillage section initially */
+    #ferraillage-section {
+        display: none;
+    }
+</style>
+</head>
+<body>
+<header>
+    <h1>Logiciel de Gestion du Béton et Maçonnerie</h1>
+</header>
+
+<div class="landing-page" id="landing-page">
+    <h2>Bienvenue sur votre outil de calcul</h2>
+    <p>Utilisez ce logiciel pour estimer précisément les volumes, les briques, le nombre d'hourdis et gérer prochainement le calcul de ferraillage.</p>
+    <button id="start-btn-beton">Accéder au calculateur béton</button>
+    <button id="start-btn-ferraillage">Accéder au calcul de ferraillage</button>
+</div>
+
+<!-- Section Béton -->
+<div class="container" id="calculator-section" style="display:none;">
+    <h1>Calculateur de Volumes, Maçonnerie et Hourdis</h1>
+    <h3>Sélectionnez un type d'élément et renseignez ses dimensions</h3>
+
+    <div class="form-group">
+        <label for="element-type">Type d'élément :</label>
+        <select id="element-type">
+            <option value="">--Choisir--</option>
+            <option value="poteau">Poteau</option>
+            <option value="poutre">Poutre</option>
+            <option value="dalle_pleine">Dalle pleine</option>
+            <option value="dalle_creuse">Dalle à corps creux</option>
+            <option value="escalier">Escalier</option>
+            <option value="voile">Voile (mur porteur)</option>
+            <option value="ascenseur">Cage d'ascenseur</option>
+            <option value="semelle">Semelle (fondation)</option>
+            <option value="maconnerie">Maçonnerie (mur en briques)</option>
+            <option value="hourdis">Hourdis (nombre d'éléments)</option>
+        </select>
+    </div>
+
+    <div id="form-fields"></div>
+
+    <button id="calculate-volume" disabled>Calculer</button>
+    <div id="volume-result"></div>
+
+    <button id="add-element" disabled>Ajouter cet élément</button>
+
+    <div class="elements-list" style="display:none;">
+        <h2>Éléments ajoutés</h2>
+        <table id="elements-table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Dimensions/Infos</th>
+                    <th>Volume / Nb Briques / Nb Hourdis</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div class="results">
+            <h3>Volume total (m³) : <span id="total-volume">0</span></h3>
+            <div class="flex">
+                <label for="marge">Marge (%) :</label>
+                <input type="number" id="marge" value="0" min="0" max="100"/>
+            </div>
+            <button id="apply-margin">Recalculer total avec marge</button>
+            <h3>Volume final avec marge (m³) : <span id="final-volume">0</span></h3>
+            <button id="download-pdf-btn">Télécharger le PDF</button>
+        </div>
+    </div>
+</div>
+
+<!-- Section Ferraillage -->
+<div class="container" id="ferraillage-section" style="display:none;">
+    <h1>Calculateur de Ferraillage</h1>
+    <h3>Sélectionnez un type d'élément pour le ferraillage</h3>
+
+    <div class="form-group">
+        <label for="ferraillage-type">Type d'élément :</label>
+        <select id="ferraillage-type">
+            <option value="">--Choisir--</option>
+            <option value="ferraillage_dalle_pleine">Ferraillage dalle pleine</option>
+            <option value="ferraillage_dalle_compression">Ferraillage dalle de compression</option>
+            <option value="ferraillage_poteaux">Ferraillage poteaux</option>
+            <option value="ferraillage_poutre">Ferraillage poutre</option>
+            <option value="ferraillage_longrine">Ferraillage longrine</option>
+            <option value="ferraillage_semelle_isolee">Ferraillage semelle isolée</option>
+            <option value="ferraillage_semelle_filante">Ferraillage semelle filante</option>
+        </select>
+    </div>
+
+    <div id="ferraillage-form-fields"></div>
+
+    <button id="calculate-ferraillage" disabled>Calculer</button>
+    <div id="ferraillage-result"></div>
+
+    <button id="add-ferraillage-element" disabled>Ajouter cet élément</button>
+
+    <div class="elements-list-ferraillage" style="display:none;">
+        <h2>Éléments de ferraillage ajoutés</h2>
+        <table id="ferraillage-table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Dimensions/Infos</th>
+                    <th>Quantité Ferraillage</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div class="results-ferraillage">
+            <!-- Par la suite, on pourra ajouter des totaux et options PDF pour ferraillage -->
+        </div>
+    </div>
+</div>
+
+<script>
+// Boutons d'accès
+const startBtnBeton = document.getElementById('start-btn-beton');
+const startBtnFerraillage = document.getElementById('start-btn-ferraillage');
+const landingPage = document.getElementById('landing-page');
+const calculatorSection = document.getElementById('calculator-section');
+const ferraillageSection = document.getElementById('ferraillage-section');
+
+startBtnBeton.addEventListener('click', () => {
+    landingPage.style.display = 'none';
+    calculatorSection.style.display = 'block';
+});
+
+startBtnFerraillage.addEventListener('click', () => {
+    landingPage.style.display = 'none';
+    ferraillageSection.style.display = 'block';
+});
+
+// Ici, la partie Ferraillage n'a pas encore de logique. On l'implémentera plus tard.
+// Code existant pour béton, maçonnerie, hourdis, etc. conservé.
+
+
+// Références béton
+const elementTypeSelect = document.getElementById('element-type');
+const formFields = document.getElementById('form-fields');
+const calculateBtn = document.getElementById('calculate-volume');
+const volumeResult = document.getElementById('volume-result');
+const addElementBtn = document.getElementById('add-element');
+
+const elementsTable = document.getElementById('elements-table').querySelector('tbody');
+const totalVolumeSpan = document.getElementById('total-volume');
+const finalVolumeSpan = document.getElementById('final-volume');
+const margeInput = document.getElementById('marge');
+const applyMarginBtn = document.getElementById('apply-margin');
+const downloadPdfBtn = document.getElementById('download-pdf-btn');
+
+let currentVolume = 0;
+let totalVolume = 0;
+let elementsList = [];
+
+// Fonction chargeant une image (pour PDF)
+function loadImage(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = url;
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error('Failed to load image.'));
+    });
+}
+
+// Fonction pour capitaliser la première lettre d'une chaîne
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
+// Fonction de formatage de la date
+function formatDate(timestamp) {
+    const d = new Date(timestamp);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year} à ${hours}h${minutes}`;
+}
+
+// Les fonctions render* et le code elementConfigs ainsi que le calcul PDF restent les mêmes qu'avant.
+// Comme la demande est seulement de préparer l'interface ferraillage, on conserve le reste inchangé.
+// Le code original du calcul et des fonctions a été tronqué ici, mais on suppose qu'il est inchangé et présent.
+
+
+// Ici on reprend le code elementConfigs et calcul béton existants (version finale précédente)
+
+function renderMaconnerieFields(container) {
+    // Code inchangé
+    let baseFields = [
+        {label:"Longueur mur (m)", name:"Lm", type:"number"},
+        {label:"Hauteur mur (m)", name:"Hm", type:"number"},
+        {label:"Briques par m²", name:"Bpm2", type:"number"}
+    ];
+
+    baseFields.forEach(field => {
+        const div = document.createElement('div');
+        div.classList.add('form-group');
+        const label = document.createElement('label');
+        label.textContent = field.label + " :";
+        const input = document.createElement('input');
+        input.type = field.type;
+        input.name = field.name;
+        input.min = "0";
+        input.step = "0.01";
+        div.appendChild(label);
+        div.appendChild(input);
+        container.appendChild(div);
+    });
+
+    const porteDiv = document.createElement('div');
+    porteDiv.classList.add('form-group');
+    const porteLabel = document.createElement('label');
+    porteLabel.textContent = "Ce mur contient des portes ?";
+    const porteCheck = document.createElement('input');
+    porteCheck.type = "checkbox";
+    porteCheck.name = "hasDoors";
+    porteDiv.appendChild(porteLabel);
+    porteDiv.appendChild(porteCheck);
+    container.appendChild(porteDiv);
+
+    const doorsContainer = document.createElement('div');
+    doorsContainer.style.display = 'none';
+    const addDoorBtn = document.createElement('button');
+    addDoorBtn.textContent = "Ajouter une porte";
+    addDoorBtn.type = "button";
+    doorsContainer.appendChild(addDoorBtn);
+    container.appendChild(doorsContainer);
+
+    addDoorBtn.addEventListener('click', () => {
+        const doorGroup = document.createElement('div');
+        doorGroup.classList.add('door-window-group');
+        const title = document.createElement('h4');
+        title.textContent = "Porte supplémentaire";
+        doorGroup.appendChild(title);
+
+        let d1 = document.createElement('div');
+        d1.classList.add('form-group');
+        let l1 = document.createElement('label');
+        l1.textContent = "Largeur porte (m) :";
+        let i1 = document.createElement('input');
+        i1.type = "number";
+        i1.name = "Wd_dynamic";
+        i1.min = "0";
+        i1.step = "0.01";
+        d1.appendChild(l1); d1.appendChild(i1);
+
+        let d2 = document.createElement('div');
+        d2.classList.add('form-group');
+        let l2 = document.createElement('label');
+        l2.textContent = "Hauteur porte (m) :";
+        let i2 = document.createElement('input');
+        i2.type = "number";
+        i2.name = "Hd_dynamic";
+        i2.min = "0";
+        i2.step = "0.01";
+        d2.appendChild(l2); d2.appendChild(i2);
+
+        doorGroup.appendChild(d1);
+        doorGroup.appendChild(d2);
+
+        doorsContainer.appendChild(doorGroup);
+    });
+
+    const fenetreDiv = document.createElement('div');
+    fenetreDiv.classList.add('form-group');
+    const fenetreLabel = document.createElement('label');
+    fenetreLabel.textContent = "Ce mur contient des fenêtres ?";
+    const fenetreCheck = document.createElement('input');
+    fenetreCheck.type = "checkbox";
+    fenetreCheck.name = "hasWindows";
+    fenetreDiv.appendChild(fenetreLabel);
+    fenetreDiv.appendChild(fenetreCheck);
+    container.appendChild(fenetreDiv);
+
+    const windowsContainer = document.createElement('div');
+    windowsContainer.style.display = 'none';
+    const addWindowBtn = document.createElement('button');
+    addWindowBtn.textContent = "Ajouter une fenêtre";
+    addWindowBtn.type = "button";
+    windowsContainer.appendChild(addWindowBtn);
+    container.appendChild(windowsContainer);
+
+    addWindowBtn.addEventListener('click', () => {
+        const windowGroup = document.createElement('div');
+        windowGroup.classList.add('door-window-group');
+        const title = document.createElement('h4');
+        title.textContent = "Fenêtre supplémentaire";
+        windowGroup.appendChild(title);
+
+        let d1 = document.createElement('div');
+        d1.classList.add('form-group');
+        let l1 = document.createElement('label');
+        l1.textContent = "Largeur fenêtre (m) :";
+        let i1 = document.createElement('input');
+        i1.type = "number";
+        i1.name = "Wf_dynamic";
+        i1.min = "0";
+        i1.step = "0.01";
+        d1.appendChild(l1); d1.appendChild(i1);
+
+        let d2 = document.createElement('div');
+        d2.classList.add('form-group');
+        let l2 = document.createElement('label');
+        l2.textContent = "Hauteur fenêtre (m) :";
+        let i2 = document.createElement('input');
+        i2.type = "number";
+        i2.name = "Hf_dynamic";
+        i2.min = "0";
+        i2.step = "0.01";
+        d2.appendChild(l2); d2.appendChild(i2);
+
+        windowGroup.appendChild(d1);
+        windowGroup.appendChild(d2);
+
+        windowsContainer.appendChild(windowGroup);
+    });
+
+    porteCheck.addEventListener('change', () => {
+        doorsContainer.style.display = porteCheck.checked ? 'block' : 'none';
+    });
+
+    fenetreCheck.addEventListener('change', () => {
+        windowsContainer.style.display = fenetreCheck.checked ? 'block' : 'none';
+    });
+}
+
+function renderDallePleineFields(container) {
+    // Code inchangé (dalle pleine + ouvertures)
+    let baseFields = [
+        {label:"Longueur (m)", name:"L", type:"number"},
+        {label:"Largeur (m)", name:"l", type:"number"},
+        {label:"Epaisseur (m)", name:"e", type:"number"},
+        {label:"Nombre de dalles", name:"N", type:"number"}
+    ];
+
+    baseFields.forEach(field => {
+        const div = document.createElement('div');
+        div.classList.add('form-group');
+        const label = document.createElement('label');
+        label.textContent = field.label + " :";
+        const input = document.createElement('input');
+        input.type = field.type;
+        input.name = field.name;
+        input.min = "0";
+        input.step = "0.01";
+        div.appendChild(label);
+        div.appendChild(input);
+        container.appendChild(div);
+    });
+
+    const openingsDiv = document.createElement('div');
+    openingsDiv.classList.add('form-group');
+    const openingsLabel = document.createElement('label');
+    openingsLabel.textContent = "Cette dalle contient des ouvertures ?";
+    const openingsCheck = document.createElement('input');
+    openingsCheck.type = "checkbox";
+    openingsCheck.name = "hasOpenings";
+    openingsDiv.appendChild(openingsLabel);
+    openingsDiv.appendChild(openingsCheck);
+    container.appendChild(openingsDiv);
+
+    const openingsContainer = document.createElement('div');
+    openingsContainer.style.display = 'none';
+    const addOpeningBtn = document.createElement('button');
+    addOpeningBtn.textContent = "Ajouter une ouverture";
+    addOpeningBtn.type = "button";
+    openingsContainer.appendChild(addOpeningBtn);
+    container.appendChild(openingsContainer);
+
+    addOpeningBtn.addEventListener('click', () => {
+        const openingGroup = document.createElement('div');
+        openingGroup.classList.add('door-window-group');
+        const title = document.createElement('h4');
+        title.textContent = "Ouverture supplémentaire";
+        openingGroup.appendChild(title);
+
+        let d1 = document.createElement('div');
+        d1.classList.add('form-group');
+        let l1 = document.createElement('label');
+        l1.textContent = "Longueur ouverture (m) :";
+        let i1 = document.createElement('input');
+        i1.type = "number";
+        i1.name = "Lop_dynamic";
+        i1.min = "0";
+        i1.step = "0.01";
+        d1.appendChild(l1); d1.appendChild(i1);
+
+        let d2 = document.createElement('div');
+        d2.classList.add('form-group');
+        let l2 = document.createElement('label');
+        l2.textContent = "Largeur ouverture (m) :";
+        let i2 = document.createElement('input');
+        i2.type = "number";
+        i2.name = "lop_dynamic";
+        i2.min = "0";
+        i2.step = "0.01";
+        d2.appendChild(l2); d2.appendChild(i2);
+
+        openingGroup.appendChild(d1);
+        openingGroup.appendChild(d2);
+
+        openingsContainer.appendChild(openingGroup);
+    });
+
+    openingsCheck.addEventListener('change', () => {
+        openingsContainer.style.display = openingsCheck.checked ? 'block' : 'none';
+    });
+}
+
+function renderDalleCreuseFields(container) {
+    // Code inchangé (dalle creuse + ouvertures)
+    let baseFields = [
+        {label:"Longueur (m)", name:"L", type:"number"},
+        {label:"Largeur (m)", name:"l", type:"number"},
+        {label:"Epaisseur (m)", name:"e", type:"number"},
+        {label:"Proportion de vides (%)", name:"voidPerc", type:"number"},
+        {label:"Nombre de dalles", name:"N", type:"number"}
+    ];
+
+    baseFields.forEach(field => {
+        const div = document.createElement('div');
+        div.classList.add('form-group');
+        const label = document.createElement('label');
+        label.textContent = field.label + " :";
+        const input = document.createElement('input');
+        input.type = field.type;
+        input.name = field.name;
+        input.min = "0";
+        input.step = "0.01";
+        div.appendChild(label);
+        div.appendChild(input);
+        container.appendChild(div);
+    });
+
+    const openingsDiv = document.createElement('div');
+    openingsDiv.classList.add('form-group');
+    const openingsLabel = document.createElement('label');
+    openingsLabel.textContent = "Cette dalle contient des ouvertures ?";
+    const openingsCheck = document.createElement('input');
+    openingsCheck.type = "checkbox";
+    openingsCheck.name = "hasOpenings";
+    openingsDiv.appendChild(openingsLabel);
+    openingsDiv.appendChild(openingsCheck);
+    container.appendChild(openingsDiv);
+
+    const openingsContainer = document.createElement('div');
+    openingsContainer.style.display = 'none';
+    const addOpeningBtn = document.createElement('button');
+    addOpeningBtn.textContent = "Ajouter une ouverture";
+    addOpeningBtn.type = "button";
+    openingsContainer.appendChild(addOpeningBtn);
+    container.appendChild(openingsContainer);
+
+    addOpeningBtn.addEventListener('click', () => {
+        const openingGroup = document.createElement('div');
+        openingGroup.classList.add('door-window-group');
+        const title = document.createElement('h4');
+        title.textContent = "Ouverture supplémentaire";
+        openingGroup.appendChild(title);
+
+        let d1 = document.createElement('div');
+        d1.classList.add('form-group');
+        let l1 = document.createElement('label');
+        l1.textContent = "Longueur ouverture (m) :";
+        let i1 = document.createElement('input');
+        i1.type = "number";
+        i1.name = "Lop_dynamic";
+        i1.min = "0";
+        i1.step = "0.01";
+        d1.appendChild(l1); d1.appendChild(i1);
+
+        let d2 = document.createElement('div');
+        d2.classList.add('form-group');
+        let l2 = document.createElement('label');
+        l2.textContent = "Largeur ouverture (m) :";
+        let i2 = document.createElement('input');
+        i2.type = "number";
+        i2.name = "lop_dynamic";
+        i2.min = "0";
+        i2.step = "0.01";
+        d2.appendChild(l2); d2.appendChild(i2);
+
+        openingGroup.appendChild(d1);
+        openingGroup.appendChild(d2);
+
+        openingsContainer.appendChild(openingGroup);
+    });
+
+    openingsCheck.addEventListener('change', () => {
+        openingsContainer.style.display = openingsCheck.checked ? 'block' : 'none';
+    });
+}
+
+function renderHourdisFields(container) {
+    // Code inchangé (hourdis)
+    const fields = [
+        {label:"Longueur entre nus (m)", name:"L_entre_nus", type:"number"},
+        {label:"Largeur entre nus (m)", name:"l_entre_nus", type:"number"},
+        {label:"Longueur réservation (m)", name:"L_res", type:"number"},
+        {label:"Largeur réservation (m)", name:"l_res", type:"number"}
+    ];
+
+    fields.forEach(field => {
+        const div = document.createElement('div');
+        div.classList.add('form-group');
+        const label = document.createElement('label');
+        label.textContent = field.label + " :";
+        const input = document.createElement('input');
+        input.type = field.type;
+        input.name = field.name;
+        input.min = "0";
+        input.step = "0.01";
+        div.appendChild(label);
+        div.appendChild(input);
+        container.appendChild(div);
+    });
+}
+
+// elementConfigs, calc et logiques PDF sont inchangés (reprendre depuis code précédent)
+
+const elementConfigs = {
+    poteau: {
+        fields: [
+            {label:"Largeur (m)", name:"b", type:"number"},
+            {label:"Epaisseur (m)", name:"h", type:"number"},
+            {label:"Hauteur (m)", name:"H", type:"number"},
+            {label:"Nombre de poteaux", name:"N", type:"number"}
+        ],
+        calc: (data) => data.b * data.h * data.H * data.N,
+        unit: "m³"
+    },
+    poutre: {
+        fields: [
+            {label:"Largeur (m)", name:"B", type:"number"},
+            {label:"Hauteur (m)", name:"H", type:"number"},
+            {label:"Longueur (m)", name:"L", type:"number"},
+            {label:"Nombre de poutres", name:"N", type:"number"}
+        ],
+        calc: (data) => data.B * data.H * data.L * data.N,
+        unit: "m³"
+    },
+    dalle_pleine: {
+        customRenderer: renderDallePleineFields,
+        calc: (data) => {
+            let totalVol = data.L * data.l * data.e * data.N;
+            let openingsVol = 0;
+            if (data.hasOpenings) {
+                const openingsContainer = formFields.querySelector('input[name="hasOpenings"]').parentNode.nextElementSibling;
+                if (openingsContainer) {
+                    const openingGroups = openingsContainer.querySelectorAll('.door-window-group');
+                    openingGroups.forEach(g => {
+                        const Lop = parseFloat(g.querySelector('input[name="Lop_dynamic"]').value) || 0;
+                        const lop = parseFloat(g.querySelector('input[name="lop_dynamic"]').value) || 0;
+                        openingsVol += (Lop * lop * data.e * data.N);
+                    });
+                }
+            }
+            let finalVol = totalVol - openingsVol;
+            if (finalVol < 0) finalVol = 0;
+            return finalVol;
+        },
+        unit: "m³"
+    },
+    dalle_creuse: {
+        customRenderer: renderDalleCreuseFields,
+        calc: (data) => {
+            let fullVol = data.L * data.l * data.e * data.N;
+            let voidVol = (data.voidPerc / 100) * fullVol;
+            let openingsVol = 0;
+            if (data.hasOpenings) {
+                const openingsContainer = formFields.querySelector('input[name="hasOpenings"]').parentNode.nextElementSibling;
+                if (openingsContainer) {
+                    const openingGroups = openingsContainer.querySelectorAll('.door-window-group');
+                    openingGroups.forEach(g => {
+                        const Lop = parseFloat(g.querySelector('input[name="Lop_dynamic"]').value) || 0;
+                        const lop = parseFloat(g.querySelector('input[name="lop_dynamic"]').value) || 0;
+                        openingsVol += (Lop * lop * data.e * data.N);
+                    });
+                }
+            }
+            let finalVol = fullVol - voidVol - openingsVol;
+            if (finalVol < 0) finalVol = 0;
+            return finalVol;
+        },
+        unit: "m³"
+    },
+    escalier: {
+        fields: [
+            {label:"Largeur escalier (m)", name:"W", type:"number"},
+            {label:"Nombre de marches 1ère volée", name:"Nm1", type:"number"},
+            {label:"Hauteur contremarche 1ère volée (m)", name:"Hcm1", type:"number"},
+            {label:"Profondeur marche 1ère volée (m)", name:"Pm1", type:"number"},
+            {label:"Nombre de marches 2ème volée", name:"Nm2", type:"number"},
+            {label:"Hauteur contremarche 2ème volée (m)", name:"Hcm2", type:"number"},
+            {label:"Profondeur marche 2ème volée (m)", name:"Pm2", type:"number"},
+            {label:"Longueur palier (m)", name:"Lp", type:"number"},
+            {label:"Largeur palier (m)", name:"Wp", type:"number"},
+            {label:"Epaisseur palier (m)", name:"Ep", type:"number"},
+            {label:"Nombre d'escaliers", name:"N", type:"number"}
+        ],
+        calc: (data) => {
+            let vol1 = data.W * data.Pm1 * data.Hcm1 * data.Nm1;
+            let vol2 = data.W * data.Pm2 * data.Hcm2 * data.Nm2;
+            let volPalier = data.Lp * data.Wp * data.Ep;
+            return (vol1 + volPalier + vol2)*data.N;
+        },
+        unit: "m³"
+    },
+    voile: {
+        fields: [
+            {label:"Epaisseur (m)", name:"Ev", type:"number"},
+            {label:"Hauteur (m)", name:"Hv", type:"number"},
+            {label:"Longueur (m)", name:"Lv", type:"number"},
+            {label:"Nombre de voiles", name:"N", type:"number"}
+        ],
+        calc: (data) => data.Ev * data.Hv * data.Lv * data.N,
+        unit: "m³"
+    },
+    ascenseur: {
+        fields: [
+            {label:"Epaisseur voile (m)", name:"Ev", type:"number"},
+            {label:"Hauteur (m)", name:"Hv", type:"number"},
+            {label:"Longueur totale voiles (m)", name:"Lv_total", type:"number"},
+            {label:"Nombre de cages", name:"N", type:"number"}
+        ],
+        calc: (data) => data.Ev * data.Hv * data.Lv_total * data.N,
+        unit: "m³"
+    },
+    semelle: {
+        fields: [
+            {label:"Longueur (m)", name:"L", type:"number"},
+            {label:"Largeur (m)", name:"l", type:"number"},
+            {label:"Epaisseur (m)", name:"e", type:"number"},
+            {label:"Nombre de semelles", name:"N", type:"number"}
+        ],
+        calc: (data) => data.L * data.l * data.e * data.N,
+        unit: "m³"
+    },
+    maconnerie: {
+        customRenderer: renderMaconnerieFields,
+        calc: (data) => {
+            const Lm = data.Lm;
+            const Hm = data.Hm;
+            const Bpm2 = data.Bpm2;
+            let wallArea = Lm * Hm;
+
+            let doorAreas = 0;
+            if (data.hasDoors) {
+                const doorsContainer = formFields.querySelector('input[name="hasDoors"]').parentNode.nextElementSibling;
+                if (doorsContainer) {
+                    const doorGroups = Array.from(doorsContainer.querySelectorAll('.door-window-group'))
+                        .filter(group => group.querySelector('h4') && group.querySelector('h4').textContent.includes("Porte"));
+                    doorGroups.forEach(g => {
+                        const Wd = parseFloat(g.querySelector('input[name="Wd_dynamic"]').value) || 0;
+                        const Hd = parseFloat(g.querySelector('input[name="Hd_dynamic"]').value) || 0;
+                        doorAreas += (Wd * Hd);
+                    });
+                }
+            }
+
+            let windowAreas = 0;
+            if (data.hasWindows) {
+                const windowsContainer = formFields.querySelector('input[name="hasWindows"]').parentNode.nextElementSibling;
+                if (windowsContainer) {
+                    const windowGroups = windowsContainer.querySelectorAll('.door-window-group');
+                    windowGroups.forEach(g => {
+                        const Wf = parseFloat(g.querySelector('input[name="Wf_dynamic"]').value) || 0;
+                        const Hf = parseFloat(g.querySelector('input[name="Hf_dynamic"]').value) || 0;
+                        windowAreas += (Wf * Hf);
+                    });
+                }
+            }
+
+            let effectiveArea = wallArea - (doorAreas + windowAreas);
+            if (effectiveArea < 0) effectiveArea = 0;
+            return effectiveArea * Bpm2; // nb briques
+        },
+        unit: "briques"
+    },
+    hourdis: {
+        customRenderer: renderHourdisFields,
+        calc: (data) => {
+            let surfaceTot = (data.L_entre_nus * data.l_entre_nus);
+            let surfaceRes = (data.L_res * data.l_res);
+            let surfaceEff = surfaceTot - surfaceRes;
+            if (surfaceEff < 0) surfaceEff = 0;
+            return surfaceEff * 7.2 * 1.05; // nombre d'hourdis
+        },
+        unit: "hourdis"
+    }
+};
+
+// Affichage des champs selon l'élément (béton)
+elementTypeSelect.addEventListener('change', () => {
+    const type = elementTypeSelect.value;
+    formFields.innerHTML = '';
+    volumeResult.textContent = '';
+    currentVolume = 0;
+    addElementBtn.disabled = true;
+    calculateBtn.disabled = (type === '');
+
+    if(type && elementConfigs[type]) {
+        if (elementConfigs[type].customRenderer) {
+            elementConfigs[type].customRenderer(formFields);
+        } else {
+            elementConfigs[type].fields.forEach(field => {
+                const div = document.createElement('div');
+                div.classList.add('form-group');
+                const label = document.createElement('label');
+                label.textContent = field.label + " :";
+                const input = document.createElement('input');
+                input.type = field.type;
+                input.name = field.name;
+                input.min = "0";
+                input.step = "0.01";
+                div.appendChild(label);
+                div.appendChild(input);
+                formFields.appendChild(div);
+            });
+        }
+    }
+});
+
+// Calcul béton
+calculateBtn.addEventListener('click', () => {
+    const type = elementTypeSelect.value;
+    if(!type || !elementConfigs[type]) return;
+
+    const inputs = formFields.querySelectorAll('input');
+    let data = {};
+    let invalidData = false;
+    inputs.forEach(inp => {
+        if (inp.type === "checkbox") {
+            data[inp.name] = inp.checked;
+        } else {
+            const val = parseFloat(inp.value);
+            if(isNaN(val) || val < 0) {
+                if (inp.parentNode.style.display === 'none' || inp.value === "") {
+                    data[inp.name] = 0;
+                } else {
+                    volumeResult.textContent = "Veuillez renseigner des valeurs valides.";
+                    invalidData = true;
+                }
+            } else {
+                data[inp.name] = val;
+            }
+        }
+    });
+
+    if (invalidData) return;
+
+    currentVolume = elementConfigs[type].calc(data);
+
+    if(isNaN(currentVolume) || currentVolume < 0) {
+        volumeResult.textContent = "Erreur dans le calcul, vérifiez vos données.";
+        return;
+    }
+
+    const unit = elementConfigs[type].unit || "m³";
+    if(unit === "briques") {
+        volumeResult.textContent = "Nombre de briques estimé : " + Math.ceil(currentVolume) + " briques";
+    } else if (unit === "hourdis") {
+        volumeResult.textContent = "Nombre d'hourdis estimé : " + Math.ceil(currentVolume) + " hourdis";
+    } else {
+        volumeResult.textContent = "Volume calculé : " + currentVolume.toFixed(3) + " " + unit;
+    }
+
+    addElementBtn.disabled = false;
+});
+
+// Ajouter l'élément (béton)
+addElementBtn.addEventListener('click', () => {
+    const type = elementTypeSelect.value;
+    const inputs = formFields.querySelectorAll('input');
+    let dimInfos = [];
+    inputs.forEach(inp => {
+        let val = (inp.type === "checkbox") ? (inp.checked ? "oui" : "non") : inp.value;
+        dimInfos.push(`${inp.name}=${val}`);
+    });
+
+    if (type === "maconnerie" || type === "dalle_pleine" || type === "dalle_creuse") {
+        const hasOpenings = (type === "maconnerie") ? (formFields.querySelector('input[name="hasDoors"]') || formFields.querySelector('input[name="hasWindows"]')) : formFields.querySelector('input[name="hasOpenings"]');
+        if (hasOpenings) {
+            const container = (type === "maconnerie") ? null : hasOpenings.parentNode.nextElementSibling;
+            if (type === "maconnerie") {
+                const doorsContainer = formFields.querySelector('input[name="hasDoors"]') ? formFields.querySelector('input[name="hasDoors"]').parentNode.nextElementSibling : null;
+                if (doorsContainer && doorsContainer.style.display !== 'none') {
+                    const doorGroups = Array.from(doorsContainer.querySelectorAll('.door-window-group'))
+                        .filter(g => g.querySelector('h4') && g.querySelector('h4').textContent.includes("Porte"));
+                    doorGroups.forEach((g, index) => {
+                        const Wd = g.querySelector('input[name="Wd_dynamic"]').value;
+                        const Hd = g.querySelector('input[name="Hd_dynamic"]').value;
+                        dimInfos.push(`Porte${index+1}: W=${Wd}m,H=${Hd}m`);
+                    });
+                }
+
+                const windowsContainer = formFields.querySelector('input[name="hasWindows"]') ? formFields.querySelector('input[name="hasWindows"]').parentNode.nextElementSibling : null;
+                if (windowsContainer && windowsContainer.style.display !== 'none') {
+                    const windowGroups = windowsContainer.querySelectorAll('.door-window-group');
+                    windowGroups.forEach((g, index) => {
+                        const Wf = g.querySelector('input[name="Wf_dynamic"]').value;
+                        const Hf = g.querySelector('input[name="Hf_dynamic"]').value;
+                        dimInfos.push(`Fenetre${index+1}: W=${Wf}m,H=${Hf}m`);
+                    });
+                }
+            } else {
+                if (container && container.style.display !== 'none') {
+                    const openingGroups = container.querySelectorAll('.door-window-group');
+                    openingGroups.forEach((g, index) => {
+                        const Lop = g.querySelector('input[name="Lop_dynamic"]').value;
+                        const lop = g.querySelector('input[name="lop_dynamic"]').value;
+                        dimInfos.push(`Ouverture${index+1}: L=${Lop}m,l=${lop}m`);
+                    });
+                }
+            }
+        }
+    }
+
+    const unit = elementConfigs[type].unit || "m³";
+    elementsList.push({
+        type: type,
+        dims: dimInfos.join(", "),
+        volume: currentVolume,
+        unit: unit
+    });
+
+    updateElementsTable();
+    addElementBtn.disabled = true;
+    volumeResult.textContent = "";
+    formFields.innerHTML = '';
+    elementTypeSelect.value = '';
+    calculateBtn.disabled = true;
+});
+
+// Mise à jour du tableau (béton)
+function updateElementsTable() {
+    elementsTable.innerHTML = '';
+    totalVolume = 0;
+
+    elementsList.forEach(el => {
+        const tr = document.createElement('tr');
+        const tdType = document.createElement('td');
+        tdType.textContent = capitalizeFirstLetter(el.type);
+        const tdDims = document.createElement('td');
+        tdDims.textContent = el.dims;
+
+        const tdVol = document.createElement('td');
+        if(el.unit === "briques") {
+            tdVol.textContent = Math.ceil(el.volume) + " briques";
+        } else if (el.unit === "hourdis") {
+            tdVol.textContent = Math.ceil(el.volume) + " hourdis";
+        } else {
+            tdVol.textContent = el.volume.toFixed(3) + " m³";
+            totalVolume += el.volume;
+        }
+
+        tr.appendChild(tdType);
+        tr.appendChild(tdDims);
+        tr.appendChild(tdVol);
+        elementsTable.appendChild(tr);
+    });
+
+    totalVolumeSpan.textContent = totalVolume.toFixed(3);
+    finalVolumeSpan.textContent = totalVolume.toFixed(3);
+    document.querySelector('.elements-list').style.display = 'block';
+}
+
+// Appliquer la marge (béton)
+applyMarginBtn.addEventListener('click', () => {
+    const margeVal = parseFloat(margeInput.value);
+    if(isNaN(margeVal) || margeVal < 0) {
+        alert("Marge invalide");
+        return;
+    }
+    const finalVolume = totalVolume * (1 + margeVal/100);
+    finalVolumeSpan.textContent = finalVolume.toFixed(3);
+});
+
+// Génération du PDF (béton)
+downloadPdfBtn.addEventListener('click', async () => {
+    if (elementsList.length === 0) {
+        alert("Aucun élément à inclure dans le PDF.");
+        return;
+    }
+
+    const commandeNumero = prompt("Entrez le numéro de commande :", "12345");
+    if (commandeNumero === null || commandeNumero.trim() === "") {
+        alert("Numéro de commande invalide.");
+        return;
+    }
+
+    const currentDate = formatDate(Date.now());
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+        unit: 'pt',
+        format: 'a4',
+        putOnlyUsedFonts: true,
+        floatPrecision: 16
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 2.5 * 28.3465; // 2.5 cm
+
+    const imageUrl = "https://i.ibb.co/4JY3n4z/GSEG-ETP-pdf-1.jpg";
+    try {
+        const img = await loadImage(imageUrl);
+        doc.addImage(img, 'JPEG', 0, 0, pageWidth, pageHeight, undefined, 'MEDIUM');
+    } catch (error) {
+        console.error("Erreur lors du chargement de l'image :", error);
+        alert("Impossible de charger l'image pour le PDF.");
+        return;
+    }
+
+    const titleText = `Commande N° ${commandeNumero} au jour de ${currentDate}`;
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    const titleWidth = doc.getTextWidth(titleText);
+    const titleX = (pageWidth - titleWidth) / 2;
+    const titleY = margin + 100;
+    doc.text(titleText, titleX, titleY);
+
+    const tableColumn = ["Type", "Dimensions/Infos", "Volume / Nb Briques / Nb Hourdis"];
+    const tableRows = [];
+
+    elementsList.forEach(el => {
+        let volText = "";
+        if(el.unit === "briques") {
+            volText = `${Math.ceil(el.volume)} briques`;
+        } else if (el.unit === "hourdis") {
+            volText = `${Math.ceil(el.volume)} hourdis`;
+        } else {
+            volText = `${el.volume.toFixed(3)} m³`;
+        }
+
+        const row = [
+            capitalizeFirstLetter(el.type),
+            el.dims,
+            volText
+        ];
+        tableRows.push(row);
+    });
+
+    doc.autoTable({
+        head: [tableColumn],
+        body: tableRows,
+        startY: titleY + 30,
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [47, 128, 185] },
+        theme: 'grid'
+    });
+
+    let printY = doc.lastAutoTable.finalY + 30;
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(255, 0, 0);
+
+    const finalVolumeText = `Volume final avec marge (m³) : ${finalVolumeSpan.textContent}`;
+    const finalVolumeWidth = doc.getTextWidth(finalVolumeText);
+    const finalVolumeX = (pageWidth - finalVolumeWidth) / 2;
+    doc.text(finalVolumeText, finalVolumeX, printY);
+
+    printY += 20;
+
+    const totalBricks = elementsList
+        .filter(el => el.unit === "briques")
+        .reduce((acc, el) => acc + Math.ceil(el.volume), 0);
+
+    if (totalBricks > 0) {
+        const bricksText = `Nombre de briques à commander : ${totalBricks}`;
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(255, 0, 0);
+        const bricksWidth = doc.getTextWidth(bricksText);
+        const bricksX = (pageWidth - bricksWidth) / 2;
+        doc.text(bricksText, bricksX, printY);
+        printY += 20;
+    }
+
+    const totalHourdis = elementsList
+        .filter(el => el.unit === "hourdis")
+        .reduce((acc, el) => acc + Math.ceil(el.volume), 0);
+
+    if (totalHourdis > 0) {
+        const hourdisText = `Nombre d'hourdis à commander : ${totalHourdis}`;
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(255, 0, 0);
+        const hourdisWidth = doc.getTextWidth(hourdisText);
+        const hourdisX = (pageWidth - hourdisWidth) / 2;
+        doc.text(hourdisText, hourdisX, printY);
+    }
+
+    doc.save(`Commande_${commandeNumero}.pdf`);
+});
+</script>
+</body>
+</html>
